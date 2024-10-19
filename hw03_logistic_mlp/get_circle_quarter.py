@@ -37,13 +37,14 @@ def vis_circle_quarter(X, y, X2, y2):
     plt.show()
 
 
-
 def train(X_train, X_test, y_train, y_test, learning_rate=0.01, model=None):
     epochs = 20000
 
-    # Binary Cross-Entropy
+    # Binary Cross-Entropy 二值交叉熵 / 对数损失
+    # Loss = -1/n * sum(y * log(y_pred) + (1-y) * log(1-y_pred))
     criterion = torch.nn.BCELoss()
 
+    # Stochastic Gradient Descent 随机梯度下降
     optimizer = torch.optim.SGD(model.parameters(), lr=learning_rate)
 
     X_train, X_test = torch.Tensor(X_train), torch.Tensor(X_test)
@@ -57,8 +58,8 @@ def train(X_train, X_test, y_train, y_test, learning_rate=0.01, model=None):
         optimizer.zero_grad()  # Setting our stored gradients equal to zero
         outputs = model(X_train)
         loss = criterion(torch.squeeze(outputs), labels)  # BCE Loss
-        loss.backward()  # Computes the gradient of the given tensor w.r.t. graph leaves
-
+        loss.backward()  # Computes the gradient of the given tensor w.r.t. graph leaves 计算梯度
+ 
         optimizer.step()  # Updates weights and biases with the optimizer (SGD)
 
         iter += 1
@@ -85,8 +86,10 @@ def train(X_train, X_test, y_train, y_test, learning_rate=0.01, model=None):
 
                 print(f"Iteration: {iter}. \nTest - Loss: {loss_test.item()}. Accuracy: {accuracy_test}")
                 print(f"Train -  Loss: {loss.item()}. Accuracy: {accuracy}\n")
+                iter_record={'iter': iter, 'loss_train': loss.item(), 'accuracy_train': accuracy, 'loss_test': loss_test.item(), 'accuracy_test': accuracy_test}
 
     vis_prediction(X_test, y_test, predicted_test)
+    return iter_record
 
 
 def vis_prediction(X_test, y_test, y_pred):
@@ -96,6 +99,7 @@ def vis_prediction(X_test, y_test, y_pred):
     ax1.scatter(X_test[y_test <= 0.5, 0], X_test[y_test <= 0.5, 1], c='b')
     ax1.scatter(X_test[y_test > 0.5, 0], X_test[y_test > 0.5, 1], c='g')
     ax1.set_title('True data')
+    ax1.legend(['TN', 'TP'], loc='upper center', bbox_to_anchor=(0.5, -0.05), fancybox=True, shadow=True, ncol=5)
 
     ax2.scatter(X_test[y_pred <= 0.5, 0], X_test[y_pred <= 0.5, 1], c='b')
     ax2.scatter(X_test[y_pred > 0.5, 0], X_test[y_pred > 0.5, 1], c='g')
@@ -105,6 +109,10 @@ def vis_prediction(X_test, y_test, y_pred):
     ax2.scatter(X_test[error_1, 0], X_test[error_1, 1], c='r')
     ax2.scatter(X_test[error_2, 0], X_test[error_2, 1], c='orange')
 
+    ax2.legend(['TN', 'TP', 'FN', 'FP'], 
+               loc='upper center', bbox_to_anchor=(0.5, -0.05), fancybox=True, shadow=True, ncol=5)
+
     ax2.set_title('Pred data and errors')
 
     plt.show()
+    return fig

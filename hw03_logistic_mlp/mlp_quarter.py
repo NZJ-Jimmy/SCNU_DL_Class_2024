@@ -27,10 +27,10 @@ if __name__ == '__main__':
     output_dim = 1  # Two possible outputs
 
     # TODO: change this to 0/1 to try two cases
-    use_circle_quarter = 0
+    use_circle_quarter = 1
     # TODO: you may modify hidden_size and learning_rate
     hidden_size = 3
-    lr = 0.05
+    lr = 0.1
 
     ###############################
     ####     DO NOT MODIFY    #####
