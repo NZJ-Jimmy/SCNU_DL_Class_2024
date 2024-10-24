@@ -28,6 +28,7 @@ class MyDropout(nn.Module):
             # use the Binomial distribution to sample a binary mask
             # indicating which elements to drop (mask[i,j]=0) and retain (mask[i,j]=1)
             self.mask = binomial.sample(X.size())
+            # 以一定的概率 p 丢弃输入张量 X 中的元素
             # dropout X
             X_masked = X * self.mask
             # then we have to scale the element values to be 1/(1-prob), to make X_masked roughly sum to original X
@@ -41,7 +42,7 @@ class MyDropout(nn.Module):
     def backward_manual(self, delta_X_top):
         # TODO: implement backward function
         if self.training:
-            delta_X_bottom = delta_X_top  # TODO, modify this
+            delta_X_bottom = delta_X_top * self.mask * self.scale  # TODO-OK, modify this
         else:
             delta_X_bottom = delta_X_top  # TODO, should modify this or not ?
         return delta_X_bottom
