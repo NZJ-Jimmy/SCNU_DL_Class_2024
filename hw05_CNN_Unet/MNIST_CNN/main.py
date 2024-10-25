@@ -13,17 +13,27 @@ from torch.optim.lr_scheduler import StepLR
 from model_cnn_TODO import Net
 from PIL import Image
 
+import pandas as pd
+import matplotlib.pyplot as plt
+
 
 def train(args, model, device, train_loader, optimizer, epoch):
     # TODO: explain the function of train()
     model.train()
     for batch_idx, (data, target) in enumerate(train_loader):
+        # 迁移到 GPU
         data, target = data.to(device), target.to(device)
+        # 重置梯度
         optimizer.zero_grad()
+        # 前向传播
         output = model(data)
-        loss = F.cross_entropy(output, target)
+        # 计算损失（交叉熵）
+        loss = F.cross_entropy(output, target=target)
+        # 反向传播
         loss.backward()
+        # 更新参数
         optimizer.step()
+        # 打印训练状态
         if batch_idx % args.log_interval == 0:
             print('Train Epoch: {} [{}/{} ({:.0f}%)] Lr:{:.4f} Loss: {:.6f}'.format(
                 epoch, batch_idx * len(data), len(train_loader.dataset),
@@ -34,15 +44,18 @@ def train(args, model, device, train_loader, optimizer, epoch):
 # note: during training, you can only validate
 def test(model, device, test_loader, phase='validate'):
     # TODO: explain the function of eval()
+    # set the model to evaluation mode
     model.eval()
     test_loss = 0
     correct = 0
     with torch.no_grad():
         for data, target in test_loader:
             data, target = data.to(device), target.to(device)
+            # forward pass
             output = model(data)
             test_loss += F.cross_entropy(output, target, reduction='sum').item()  # sum up batch loss
             # TODO: explain the function of argmax
+            # get the index of the max log-probability
             pred = output.argmax(dim=1, keepdim=True)  # get the index of the max log-probability
             correct += pred.eq(target.view_as(pred)).sum().item()
 
@@ -52,6 +65,8 @@ def test(model, device, test_loader, phase='validate'):
         phase,
         test_loss, correct, len(test_loader.dataset),
         100. * correct / len(test_loader.dataset)))
+    
+    return correct / len(test_loader.dataset)
 
 
 # read source https://pytorch.org/vision/main/_modules/torchvision/datasets/mnist.html#MNIST
@@ -100,7 +115,7 @@ def load_mnist_data(args):
     # TODO: explain transforms of images
     transform = transforms.Compose([
         transforms.ToTensor(),
-        transforms.Normalize((0.1307,), (0.3081,))
+        transforms.Normalize((0.1307,), (0.3081,)) # mean and std of MNIST dataset
     ])
 
     train_data = mnist_dataset(train_images, train_labels, transform)
@@ -179,16 +194,20 @@ def main():
     else:
         raise "This model type is not implemented !!"
 
+    # 用于调整学习率
     scheduler = StepLR(optimizer, step_size=8, gamma=args.gamma)
 
     # training phase, use validation set to check performance
     # TODO: record the validation accuracy in each epoch
     # use Matplot to draw the accuracy changes over each epoch
     # compare SGD, ADAM convergence and explain which and why is better
+    acc_pd = pd.DataFrame(columns=['epoch', 'accuracy'])
     for epoch in range(1, args.epochs + 1):
         train(args, model, device, train_loader, optimizer, epoch)
-        test(model, device, validate_loader, phase='Validate')
+        acc = test(model, device, validate_loader, phase='Validate')
+        acc_pd = acc_pd.append({'epoch': epoch, 'accuracy': acc}, ignore_index=True)
         scheduler.step()
+    acc_pd.plot(x='epoch', y='accuracy')    # plot the accuracy changes over each epoch
 
     # testing phase, use test set to evaluate the final performance
     print('========= Final Testing =============')
