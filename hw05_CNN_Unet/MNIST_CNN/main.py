@@ -201,13 +201,13 @@ def main():
     # TODO: record the validation accuracy in each epoch
     # use Matplot to draw the accuracy changes over each epoch
     # compare SGD, ADAM convergence and explain which and why is better
-    acc_pd = pd.DataFrame(columns=['epoch', 'accuracy'])
+    acc_pd:pd.DataFrame = pd.DataFrame(columns=['epoch', 'accuracy'])
     for epoch in range(1, args.epochs + 1):
         train(args, model, device, train_loader, optimizer, epoch)
         acc = test(model, device, validate_loader, phase='Validate')
-        acc_pd = acc_pd.append({'epoch': epoch, 'accuracy': acc}, ignore_index=True)
+        acc_pd = acc_pd._append([pd.DataFrame({'epoch': [epoch], 'accuracy': [acc]})])
         scheduler.step()
-    acc_pd.plot(x='epoch', y='accuracy')    # plot the accuracy changes over each epoch
+    train_acc_plot = acc_pd.plot(x='epoch', y='accuracy')    # plot the accuracy changes over each epoch
 
     # testing phase, use test set to evaluate the final performance
     print('========= Final Testing =============')
@@ -219,6 +219,8 @@ def main():
             os.mkdir('output')
         torch.save(model.state_dict(), "output/mnist_%s.pt" % (args.type,))
 
-
+    plt.title(f'Training Accuracy {args.type}_lr{args.lr}_gamma{args.gamma}')
+    plt.savefig(f'output/{args.type}_lr{args.lr}_gamma{args.gamma}_train_acc.png')
+    plt.show()
 if __name__ == '__main__':
     main()
