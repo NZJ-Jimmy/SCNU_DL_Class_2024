@@ -13,7 +13,6 @@
             "cwd": "${workspaceFolder}/hw05_CNN_Unet/MNIST_CNN",
             "args": [
                 "--type","SGD",
-                "--save-model",
             ]
         },
         {
@@ -25,7 +24,6 @@
             "cwd": "${workspaceFolder}/hw05_CNN_Unet/MNIST_CNN",
             "args": [
                 "--type","ADAM",
-                "--save-model",
             ]
         },
         {
