@@ -14,6 +14,10 @@ H_col = torch.zeros(200,1).float()
 # TODO: repeat channels or resize both H_row and H_col to make the following code work,
 #  since you want translate pixel on each of the RGB channels
 
+H_row = torch.cat([H_row,torch.tensor([[1.]])],1) # shape: [1,201]
+H_col = torch.cat([H_col,torch.tensor([[1.]])],0) # shape: [201,1]
+H_row = H_row.expand(3,1,-1,-1) # shape: [3,1,1,201]
+H_col = H_col.expand(3,1,-1,-1) # shape: [3,1,201,1]
 
 ###############################################
 ## Warning: Do not modify any lines below  ###
