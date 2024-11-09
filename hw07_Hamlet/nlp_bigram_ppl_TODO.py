@@ -52,10 +52,8 @@ if debug:
 #       = ((Uni-Counter[w1] / Bi-Counter[(w1,w2)]) * (Uni-Counter[w2] / Bi-Counter[(w2,w3)]) * ... * (Uni-Counter[wn-1] / Bi-Counter[(wn-1,wn)])) ** (1/n)
 
 prod = 1    # product of (Uni-Counter / Bi-Counter)
-
 for bigram in query_bigram:
     prod *= unigrams[bigram[0]] / bigrams[bigram]
     
 ppl = prod ** (1/len(query_bigram))
-
 print(ppl)
