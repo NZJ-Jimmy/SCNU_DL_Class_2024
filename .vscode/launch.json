@@ -5,6 +5,26 @@
     "version": "0.2.0",
     "configurations": [
         {
+            "name": "Python 调试程序: 包含参数的当前文件",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${file}",
+            "console": "integratedTerminal",
+            "cwd": "${fileDirname}",
+            "args": 
+                "${command:pickArgs}"
+        },
+        {
+            "name": "LSTM_QA/generate.py Query",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${workspaceFolder}/hw08_RNN_QA/LSTM_QA/generate.py",
+            "console": "integratedTerminal",
+            "cwd": "${fileDirname}",
+            "args": 
+                ["-q", "${command:pickArgs}", "--cuda"]
+        },
+        {
             "name": "MNIST_CNN/main.py SGD",
             "type": "debugpy",
             "request": "launch",
@@ -12,7 +32,8 @@
             "console": "integratedTerminal",
             "cwd": "${workspaceFolder}/hw05_CNN_Unet/MNIST_CNN",
             "args": [
-                "--type","SGD",
+                "--type",
+                "SGD",
             ]
         },
         {
@@ -23,7 +44,8 @@
             "console": "integratedTerminal",
             "cwd": "${workspaceFolder}/hw05_CNN_Unet/MNIST_CNN",
             "args": [
-                "--type","ADAM",
+                "--type",
+                "ADAM",
             ]
         },
         {

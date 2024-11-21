@@ -54,7 +54,7 @@ def main(args):
     train_loader = DataLoader(train_set, batch_size=1, shuffle=True, drop_last=True)
 
 
-    def train(model, optimizer, epoch):
+    def train(model:QA_RNN, optimizer, epoch):
         # accumulate gradient over batch
         optimizer.zero_grad()
         loss_avg = 0
@@ -71,8 +71,13 @@ def main(args):
             ########## TODO-Explain ##########
             ##################################
             # TODO: Explain why give in answer_tensor[:, :-1] in forward(), hint: the last token is [END], check qa_dataset
+            # Answer:
+            # 这样会去掉 answer_tensor 的最后一个 token，因为最后一个 token 是 [END]，表示答案的结束。我们需要让模型在预测完 [END] 之后就停止预测。
+            
             output = model(question_tensor, answer_tensor[:, :-1], hidden)
             # TODO: Explain why use answer_tensor[:, 1:] as training target, hint: the first token is [BEG]
+            # Answer:
+            # 这样会去掉 answer_tensor 的第一个 token，因为第一个 token 是 [BEG]，表示答案的开始。我们不需要让模型预测 [BEG]，因为我们已经知道答案的开始，然后让模型预测接下来的 token。
             loss = criterion(output.squeeze(0), answer_tensor[:, 1:].squeeze(0)) / args.batch_size
             # hint: review teacher forcing in lecture note
 
@@ -82,6 +87,10 @@ def main(args):
             # each question and answer has different length
             # it's hard to put them in a batch (an alternative way is to using pad_sequence, but complex)
             # so here we just use batch_size=1, and accumulate args.batch_size gradients
+            # Answer:
+            # 在这个我们的模型中，每个问题和答案的长度都不一样，所以我们不能直接把它们放到一个 batch 中。我们只能一个一个地处理，所以我们需要累积 args.batch_size 个梯度，然后再更新模型参数。
+            
+            # 每次计算损失后，累积损失值并马上进行反向传播，但不更新参数
             loss_avg += loss.item()
             loss.backward()
 
@@ -89,16 +98,25 @@ def main(args):
             # we perform just one step of optimization.
             # hint: 1) forwarding 32 times of batch_size 1 and performing backward once;
             # 2) forwarding a batch of 32 sequences all together and backward once.  Is 1) and 2) equivalent?
+            # Answer:
+            # 在结果上是等价的，但在计算过程中并不是等价的。
+            # 当累积了 args.batch_size 个梯度之后，我们就进行一次优化。让 GPU 完成并发处理；
+            # 这样做的好处是，我们可以减少模型参数的更新次数，提高训练效率。
+
             acc_train_iter += 1
             if acc_train_iter % args.batch_size == 0:
                 acc_backward_num += 1
-                torch.nn.utils.clip_grad_norm_(model.parameters(), 1.)
-                optimizer.step()
-                optimizer.zero_grad()
+                # 当神经网络深度逐渐增加，网络参数量增多的时候，反向传播过程中链式法则里的梯度连乘项数便会增多，更易引起梯度消失和梯度爆炸。
+                # 进行梯度剪裁，即设置一个梯度大小的上限。
+                # 这里设置最大范数为 1，即梯度的 L2 范数不超过 1。
+                # Refrence: https://zhuanlan.zhihu.com/p/557949443
+                torch.nn.utils.clip_grad_norm_(model.parameters(), 1.)  # 对梯度裁剪
+                optimizer.step()    # 更新模型参数
+                optimizer.zero_grad()   # 清空梯度
 
         if acc_backward_num == 0:
             return 0
-        return loss_avg / acc_backward_num
+        return loss_avg / acc_backward_num # 每次参数更新的平均损失值
 
     # initialize models
     model = QA_RNN(

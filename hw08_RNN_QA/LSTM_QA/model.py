@@ -12,8 +12,11 @@ class QA_RNN(nn.Module):
 
         # TODO-Explain, why we need to separate encoder and decoder
         # Find the encoder-decoder architecture in lecture note
+        # Answer:
+        # Encoder: To encode the question state to hidden state
+        # Decoder: To decode the hidden state to answer state
         # TODO: Draw the task computational graph of our word-based question-answering
-        self.embed = nn.Embedding(vocab_size, hidden_size)
+        self.embed = nn.Embedding(vocab_size, hidden_size) # 词嵌入层
         if self.model == "gru":
             self.encoder = nn.GRU(hidden_size, hidden_size, n_layers, batch_first=True, dropout=0.1)
             self.decoder = nn.GRU(hidden_size, hidden_size, n_layers, batch_first=True, dropout=0.1)
@@ -46,6 +49,7 @@ class QA_RNN(nn.Module):
         #### Stage-1: Encoding Query String  ###
         ########################################
         # print(question_embed.device, hidden[0].device)
+        # 把问题的嵌入和隐藏状态传入编码器
         output_enc, hidden_enc = self.encoder(question_embed, hidden)
 
         #######################################
@@ -55,20 +59,23 @@ class QA_RNN(nn.Module):
         # draw a pipeline as in lecture note about inference-stage
         # draw encoder and decoder
         # note that we pass encoder hidden state to decoder as init hidden state
+        # 注意：我们需要把编码器的隐藏状态传给解码器，作为解码器的初始隐藏状态。
         # note that we should start from BEG token as first input (x0) to decoder
-        token_cur = answer_init_embed
-        hidden_cur = hidden_enc
+        # 注意：我们需要从 [BEG] token 开始，作为解码器的第一个输入。
+        token_cur = answer_init_embed   # 从 [BEG] token 开始
+        hidden_cur = hidden_enc # 把编码器的隐藏状态传给解码器，作为解码器的初始隐藏状态。
         pred_tokens = []
         for p in range(max_predict_len):
-            feat, hidden_cur = self.decoder(token_cur, hidden_cur)
-            pred_token = self.fc(feat)
+            feat, hidden_cur = self.decoder(token_cur, hidden_cur) # 解码器解码
+            pred_token = self.fc(feat)  # 预测下一个 token
 
             # The predicted word is from argmax the output probability of each word in vocab
+            # 从预测的概率分布中找到概率最大的 token
             top_i = torch.argmax(pred_token, dim=2)
-            token_cur = self.embed(top_i)
+            token_cur = self.embed(top_i) # 把预测的 token 嵌入
 
-            word_index = top_i.item()
-            pred_tokens.append(word_index)
+            word_index = top_i.item() # 获取 token 的索引
+            pred_tokens.append(word_index) # 把 token 加入到预测的 token 列表中
             if word_index == pos_end_token:
                 break
 

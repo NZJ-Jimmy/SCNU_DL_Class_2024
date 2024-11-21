@@ -30,7 +30,7 @@ class qa_dataset(data.Dataset):
             # explain which is better
             words = [word.lower() for word in words]  # make words lower case
             sents += words
-            answer_choice = ast.literal_eval(row['answers'])
+            answer_choice = ast.literal_eval(row['answers']) # convert string to dictionary
             keys = [k for k, n in answer_choice.items()]
             for word_key in keys:
                 words = nltk.word_tokenize(word_key)
@@ -101,10 +101,10 @@ class qa_dataset(data.Dataset):
         keys = [k for k, n in answer_choice.items()]
 
         # we prefer long answers, take their length as prob.
-        answer_prob = torch.tensor([len(k.split()) for k, n in answer_choice.items()]).float()
-        answer_id = torch.multinomial(answer_prob, 1)[0]
+        answer_prob = torch.tensor([len(k.split()) for k, n in answer_choice.items()]).float()  # 提取答案长度
+        answer_id = torch.multinomial(answer_prob, 1)[0]    # 以答案长度为概率，随机选取一个答案（长度越长，被选中的概率越大）
 
-        answer_str = keys[answer_id].strip()
+        answer_str = keys[answer_id].strip()    # 在 keys 中找到答案
 
         # Encode question and answer string to tensor
         question_answer_tensors = [self.__get_str_tensor__(query_str),

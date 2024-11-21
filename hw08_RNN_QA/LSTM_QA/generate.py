@@ -13,8 +13,13 @@ def generate(model, train_dataset, query_str='A', max_predict_len=100, device=No
     query_input = train_dataset.get_tensor(query_str).to(device)
 
     # TODO: Explain, why we need pass [BEG] token into generate
+    # Answer:
+    # 因为在训练时是通过前一个词去预测后一个词。
+    # 所以在生成答案的时候，需要给 [BEG] 才能开始预测第一个词。
     query_answer_init_token = train_dataset.get_beg_tensor().to(device)
     # TODO: Explain function of encoding stage
+    # Answer:
+    # 
     predicted = model.generate(query_input, query_answer_init_token,
                                train_dataset.pos_end_token_id, max_predict_len, device=device)
 
