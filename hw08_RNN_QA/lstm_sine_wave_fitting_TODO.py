@@ -132,6 +132,7 @@ if __name__ == '__main__':
     #########################
     # split train/test data
     #########################
+    # train: 0-49, val: 50-79, test: 80-99
     # input is (x0, x1, .., x_L-2)
     # target is one-shift of input, i.e., (x1, x2, ..., x_L-1)
     input = torch.from_numpy(data[:50, :-1])
