@@ -39,9 +39,12 @@ class QA_RNN(nn.Module):
     def generate(self, input_question, answer_init_token, pos_end_token, max_predict_len, device):
 
         hidden = self.init_hidden(1, device)
+        
+        # 先把问题进行词嵌入，得到词嵌入后的向量并增加一个维度
         question_embed = self.embed(input_question)  # [B=1, Question_len, hidden_size]
         question_embed = question_embed.unsqueeze(0)
 
+        # 将答案预处理，假如 [BEG] 并进行词嵌入
         # In inference, the input is [BEG] only, so its size is [1,1,D]
         answer_init_embed = self.embed(answer_init_token)
         answer_init_embed = answer_init_embed.unsqueeze(0)
